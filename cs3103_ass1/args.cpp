@@ -10,6 +10,6 @@ int main(){
     char prompt[] = "Your command:";
     input = readline(prompt);
     printf("%s\n", input);
-    return 1;
+    return 0;
 }
 
