@@ -1,0 +1,103 @@
+All possible outputs:
+
+    1. Normal case:
+        PMan: >  
+
+    2. "bg <...> <...> <...>"
+
+        (1) If there is a child process which is not a zombine:
+            Error: There is a background process already.
+
+        (2) If the input file name is null:
+            Error: Name is null.
+
+        (3) fork() to create a child process:
+        
+            (a) success
+                (i)     Parent process: 
+                    bg: Create new process: childpid
+
+                (ii)    Child process(if execvp is failed):
+                    Error: execvp() failed(may be caused by invalid file name).
+
+            (b) fail
+                Error: fork() failed!
+
+    3. If the input is not equal to the pid stored in the program
+            Error: The pid is not a valid process id of a background process.
+   
+    4. "bgkill <PID>"
+
+        (1) If the status is not 1(running) or 2(stop):
+            Error: No background process to kill.
+
+        (2) Kill the process:
+            (a) success
+                PID has been killed
+            (b) fail
+                Error: kill() is failed.
+   
+    5. "bgstop <PID>"
+
+        (1) If the status is not 1(running)
+            Error: No running background process to stop
+
+        (2) Stop the process:
+
+            (a) success
+                PID has been stopped
+
+            (b) fail
+                Error: bgstop() is failed.
+
+    6. "bgstart <PID>"
+
+        (1) If the status is not 2(stop):
+            Error: No stopped background process to start.
+
+        (2) Restart the process:
+
+            (a) success
+                PID has been started
+
+            (b) fail
+                Error: bgstart() is failed.
+
+    5. "exit"
+
+        (1) If the status is 1(running) or 2(stop)
+            run bgkill <PID>; output is same as bgkill
+
+    6 Input is unknown command:
+        PMan: > cmd command not found
+
+Some descriptions of the program:
+    
+    1. Since the length of the input is unknown, I use 100 as the maximum input length, 
+       but the maximum input length can be changed by change the "#define MAX 100 "
+
+    2. Since it is possible that execvp() is failed, parent process cannot output next "PMan > " 
+       before child process output the error message. Thus, parent should sleep WAITTIME msec after fork
+
+    3. The program provides 2 modes of bg
+
+        (1) with path: 
+            bg ./demo running 2 20
+
+        (2) without path:
+            bg demo running 2 20
+
+       To run the second mode, you need to compile the program by type
+        "g++ PMan.cpp -o PMan -D WITHOUTPATH". And you cannot call command line programs such as:
+            bg ls -al
+
+    4. For the following test case:
+
+        PMan: > bg ./demo running 1 1
+        bg: Create new process: PID 
+        PMan: > bgstop PID    // after it finished
+       
+       The process is automatically finished and becomes a zombine, 
+       if the PMan do not collect it by calling waitpid() and change the status, bgstop will be successfully executed, which is a bug.
+
+       To deal with this situation, I collect zombine process after accept the input of user's input line for each iteration.
