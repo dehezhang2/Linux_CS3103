@@ -7,6 +7,7 @@
     " 历史纪录
     set history=1000
     " 输入的命令显示出来，看的清楚些
+    set foldmethod=indent
     set showcmd
     " 状态行显示的内容
     set statusline=%F%m%r%h%w\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ [POS=%l,%v][%p%%]\ %{strftime(\"%d/%m/%y\ -\ %H:%M\")}
@@ -308,3 +309,17 @@ let g:formatters_java = ['harttle']
     " <c-j> scroll while searching
     " N jump to next 
     " n jump to prev
+
+" 代码折叠
+    " 操作：za，打开或关闭当前折叠；zM，关闭所有折叠；zR，打开所有折叠
+    " indent方式，vim会自动利用缩进进行折叠，我们可以使用现成的折叠成果．
+    " 我们可以在(括号)折叠处输入以下命令：
+    "
+    " zc 折叠
+    " zC 对所在范围内所有嵌套的折叠点进行折叠
+    " zo 展开折叠
+    " zO 对所在范围内所有嵌套的折叠点展开
+    " [z 到当前打开的折叠的开始处。
+    " ]z 到当前打开的折叠的末尾处。
+    " zj 向下移动。到达下一个折叠的开始处。关闭的折叠也被计入。
+    " zk 向上移动到前一折叠的结束处。关闭的折叠也被计入。
