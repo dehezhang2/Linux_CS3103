@@ -1,10 +1,11 @@
 #include <iostream>
 using namespace std;
-int main(){
+int main()
+{
     cout << "Hello wold!\n";
-    for(int i=0;i<100;i++){
+    for(int i=0; i<100; i++) {
         cout << "ahha" << endl;
-        if(i){
+        if(i) {
             cout << i << endl;
         }
     }
