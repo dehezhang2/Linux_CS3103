@@ -10,13 +10,13 @@
 #define WAITTIME 1000        // max time for parent process to wait for child process
 //#define WITHOUTPATH        // if define "WITHOUTPATH", use "bg demo" instead of "bg ./demo"
 
-char buffer[MAX], cmd[MAX];  // store the line into the buffer, cmd is the first string in the buffer
+char buffer[MAX];  // store the line into the buffer, cmd is the first string in the buffer
 char* args[MAX];             // buffer for each line, cmd is the first string in the buffer, args is the parameter of execvp
 int status=0;
 bool quit = 0; 
 pid_t cpid=1;
 
-int main(){
+int main(int cnt, char** args){
     do{
     
         std::cout<<"PMan: > ";
@@ -25,18 +25,16 @@ int main(){
         
         // change the status for all input cases, collect zombine process(if waitpid returns the pid of zombine, change )
         status = waitpid(-1,NULL,WNOHANG)>0?0:status;
+
         // split the input line, continue if there is no input
-        char* temp = strtok(buffer," ");
-        if(!temp)continue;
-
-        strcpy(cmd,temp);
+        char* cmd = strtok(buffer," ");
+        if(!cmd)continue;
         int argc=0;
-        temp = strtok(NULL," ");
+        do{
+            args[argc]=strtok(NULL," ");
+            argc++;
+        }while(args[argc-1]);
 
-        while(temp){
-            args[argc]=temp;argc++;
-            temp = strtok(NULL," ");
-        }
         // Case : bg
         if(strcmp(cmd,"bg")==0){
             // check running status and the argument
@@ -55,7 +53,6 @@ int main(){
                 args[0]=file;
             #endif
 
-            args[argc++]=0;
 
             // create a child process
             cpid = fork();
