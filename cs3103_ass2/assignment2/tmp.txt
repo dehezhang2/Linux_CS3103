@@ -1,0 +1,4 @@
+Flow         Queue                                  Server
+Token added  Latest sequence number Current Length  Token served Total Token fetched
+aaa          bbb                    ccc            
+                                    zzz             xxx          yyy
