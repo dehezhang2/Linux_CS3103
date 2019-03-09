@@ -121,3 +121,4 @@ source /Users/zdh/zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 alias p_rua='run(){g++ -lpthread "$1"};run'
 alias g_push='com(){git add .;git commit -m "$1";git push};com'
+alias g_push2='com(){cd "$1";g_push "$2"};com'
