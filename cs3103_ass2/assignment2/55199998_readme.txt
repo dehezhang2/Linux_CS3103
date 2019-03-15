@@ -1,0 +1,21 @@
+The way to compile the program:
+
+1. The queue structure is defined in the header file "Queue.h", please make sure that "Queue.h" is in the same folder with "55199998.cpp"
+
+2. To compile the program, use the following command line is enough (SFIFO can be changed to any name you like)
+
+        g++ 55199998.cpp -o SFIFO -lpthread
+
+3. To shorten the command line, you can add the following script in your "~/.bashrc".
+    
+        alias p_rua='run(){g++ -lpthread "$1"};run'
+        alias pn_rua='run(){g++ -lpthread "$1" -o "$2"};run'
+   
+   Then you can activate it by:
+
+        source ~/.bashrc
+
+   After that, you can simply call:
+
+        pn_rua 55199998.cpp SFIFO
+
