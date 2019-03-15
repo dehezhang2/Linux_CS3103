@@ -47,13 +47,13 @@ void* Flow(void *threadarg) {
             /*critical section*/
             int added_token = getRand(1, 10);
             generated_token += added_token;
+            seq_num += added_token;
             // use a for loop to simulate
             for(int i = 0; i < added_token; i++) {
                 if(dropped_token + fetched_token >= max_token)break;
                 if(!buffer->push(seq_num)) {
                     dropped_token++;
                 }
-                seq_num++;
             }
             printf("%3d          %3d                    %3d\n", added_token, seq_num - 1, buffer->size());
         pthread_mutex_unlock(&my_mutex);
@@ -96,10 +96,6 @@ int main(int argc, char* argv[]) {
         int max_token = atoi(argv[1]);
         double flow_interval = atof(argv[2]);
         
-        if(max_token==0||flow_interval==0.0){
-            printf("Max_token and flow_interval cannot be 0\n");
-            exit(-1);
-        }
         Thread_arg arg(new Queue<Token>(), max_token, flow_interval);
         printf("Flow         Queue                                  Server\n");
         printf("Token added  Latest sequence number Current Length  Token served Total Token fetched\n");
