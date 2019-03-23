@@ -14,20 +14,22 @@ void* seller(void *arg)
     int id = *(int *)arg;
     int done = 0;  /* 0 - not done; 1 - done */
     long mysell = 0;
- pthread_mutex_lock(&mutex); 
+ //pthread_mutex_lock(&mutex); 
 
     while (!done) {
-        // pthread_mutex_lock(&mutex); 
+        pthread_mutex_lock(&mutex); 
         if ( icecream > 0 ) {
+            //pthread_mutex_lock(&mutex);
             for (int i=0; i<100; i++) {}; // simulate selling duration
             icecream--;
             mysell++;
+          //  pthread_mutex_unlock(&mutex);
         }
         else
             done = 1;
-        // pthread_mutex_unlock(&mutex); 
+        pthread_mutex_unlock(&mutex); 
     }
- pthread_mutex_unlock(&mutex); 
+   //pthread_mutex_unlock(&mutex); 
 
     pthread_exit((void *) mysell);
 }
@@ -47,24 +49,24 @@ int main(int argc, char *argv[])
             cout << "Error when creating thread!" << endl;
             exit(-1);
         }
-        jrc = pthread_join(threads[i],&retval);
-        if(jrc){
-            cout << "Error when joining thread!\n";
-            exit(-1);
-        }
-         cout << "Seller #" << threadid[i] << " sold " << (long) retval << " ice-creams" << endl;
-         total_sold+=(long) retval;
+        //jrc = pthread_join(threads[i],&retval);
+        //if(jrc){
+          //  cout << "Error when joining thread!\n";
+            //exit(-1);
+       // }
+        // cout << "Seller #" << threadid[i] << " sold " << (long) retval << " ice-creams" << endl;
+         //total_sold+=(long) retval;
     }
 
-     // for (i = 0; i < NUM_SELLER; i++) { 
-     //rc = pthread_join(threads[i], &retval);
-     //if (rc) {
-       //  cout << "Error when joining thread!" << endl;
-         //exit(-1);
-     //}
-       // cout << "Seller #" << threadid[i] << " sold " << (long) retval << " ice-creams" << endl;
-        //total_sold+=(long) retval;
-     //} 
+      for (i = 0; i < NUM_SELLER; i++) { 
+     rc = pthread_join(threads[i], &retval);
+     if (rc) {
+         cout << "Error when joining thread!" << endl;
+         exit(-1);
+     }
+        cout << "Seller #" << threadid[i] << " sold " << (long) retval << " ice-creams" << endl;
+       total_sold+=(long) retval;
+     } 
 
     cout << "A total of " << total_sold << " ice-creams sold" << endl;
     pthread_exit(NULL);
