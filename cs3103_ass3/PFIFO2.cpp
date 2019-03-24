@@ -31,8 +31,8 @@ int seq_num;
 // semaphores
 // The value of the empty is initialized as zero to block the pflow thread
 // Server_permission is used to make sure server can only call pflow for one time
-sem_t empty , server_permission;
-
+sem_t empty;
+bool pflow_running;
 // get random number
 int getRand(int a, int b) {
     return rand() % (b - a + 1) + a;
@@ -42,14 +42,15 @@ int getRand(int a, int b) {
 void *Pflow(void *threadarg){
     Thread_arg* my_data;
     my_data = (Thread_arg*)threadarg;
-    const int max_token = my_data->max_token;
+    const int max_token = my_data -> max_token;
     Queue<Token>* buffer = my_data -> buffer;
 
     while(fetched_token + dropped_token < max_token){
         sem_wait(&empty);
-        if(fetched_token + dropped_token >= max_token) break;   // quit when the max_token is reached
         pthread_mutex_lock(&my_mutex);
             /*critical section*/
+        
+            if(fetched_token + dropped_token >= max_token) break;   // quit when the max_token is reached
             int added_token = getRand(1, 5);
             pflow_generate += added_token;
             seq_num += added_token;
@@ -61,10 +62,7 @@ void *Pflow(void *threadarg){
             }
             printf("%3d(pflow)   %3d                    %3d\n", added_token, seq_num - 1, buffer->size());
         pthread_mutex_unlock(&my_mutex);
-        sem_post(&server_permission);       // pflow has already respond to the request, and allows the server to continue;
     }
-    // avoid deadlock
-    sem_post(&server_permission);
     pthread_exit(NULL);
 }
 
@@ -122,7 +120,7 @@ void *Server(void *threadarg) {
                    , buffer->size(), cnt, fetched_token);
 
             // when the queue is emptied by the server, the server will call p_flow 
-            if(buffer -> size() == 0 && seq_num > 0){
+            if(buffer -> size() == 0 && seq_num > 0 && ){
                 sem_post(&empty);
                 pthread_mutex_unlock(&my_mutex);    // unlock the mutex to make sure the flow or pflow can execute as normal
 
@@ -133,7 +131,6 @@ void *Server(void *threadarg) {
         pthread_mutex_unlock(&my_mutex);
 
     }
-    // avoid deadlock
     sem_post(&empty);
     pthread_exit(NULL);
 }
@@ -147,7 +144,7 @@ int main(int argc, char* argv[]) {
         int max_token = atoi(argv[1]);
         double flow_interval = atof(argv[2]);
         sem_init(&empty,0,0);
-        sem_init(&server_permission,0,0);
+        pflow_running = false;
 
         Thread_arg arg(new Queue<Token>(), max_token, flow_interval);
         printf("Flow         Queue                                  Server\n");
