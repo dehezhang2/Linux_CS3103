@@ -49,19 +49,17 @@ void *Pflow(void *threadarg){
         sem_wait(&empty);
         if(fetched_token + dropped_token >= max_token) break;   // quit when the max_token is reached
         pthread_mutex_lock(&my_mutex);
-        /*critical section*/
-        int added_token = getRand(1, 5);
-        pflow_generate += added_token;
-        seq_num += added_token;
-
-        for(int i = 0; i < added_token; i++) {
-            if(dropped_token + fetched_token >= max_token)break;
-            if(!buffer->push(seq_num)) {
-                dropped_token++;
+            /*critical section*/
+            int added_token = getRand(1, 5);
+            pflow_generate += added_token;
+            seq_num += added_token;
+            for(int i = 0; i < added_token; i++) {
+                if(dropped_token + fetched_token >= max_token)break;
+                if(!buffer->push(seq_num)) {
+                    dropped_token++;
+                }
             }
-        }
-        printf("%3d(pflow)   %3d                    %3d\n", added_token, seq_num - 1, buffer->size());
-
+            printf("%3d(pflow)   %3d                    %3d\n", added_token, seq_num - 1, buffer->size());
         pthread_mutex_unlock(&my_mutex);
         sem_post(&server_permission);       // pflow has already respond to the request, and allows the server to continue;
     }
