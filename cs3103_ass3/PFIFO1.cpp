@@ -52,13 +52,17 @@ void *Pflow(void *threadarg){
         }
         pthread_mutex_lock(&my_mutex);
             /*critical section*/
-            if(fetched_token + dropped_token >= max_token)  break;   // quit when the max_token is reached
+            if(fetched_token + dropped_token >= max_token)  {
+            pflow_running = 0;
+                pthread_mutex_unlock(&my_mutex);
+                break;
+            }// quit when the max_token is reached
 
-            if(buffer -> size() !=0 ){
-               pflow_running = 0;
-               pthread_mutex_unlock(&my_mutex);
-               continue;
-            }
+  /*           if(buffer -> size() !=0 ){ */
+               //  pflow_running = 0;
+               // pthread_mutex_unlock(&my_mutex);
+               // continue;
+            /* } */
             
             int added_token = getRand(1, 5);
             pflow_generate += added_token;

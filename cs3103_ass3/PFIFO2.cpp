@@ -30,7 +30,6 @@ int seq_num;
 
 // semaphores
 // The value of the empty is initialized as zero to block the pflow thread
-// Server_permission is used to make sure server can only call pflow for one time
 sem_t empty;
 bool pflow_running;
 // get random number
@@ -47,20 +46,38 @@ void *Pflow(void *threadarg){
 
     while(fetched_token + dropped_token < max_token){
         sem_wait(&empty);
+        if(fetched_token + dropped_token >= max_token){
+            pflow_running = 0;
+            break;   // quit when the max_token is reached
+        }
         pthread_mutex_lock(&my_mutex);
             /*critical section*/
-        
-            if(fetched_token + dropped_token >= max_token) break;   // quit when the max_token is reached
+            if(fetched_token + dropped_token >= max_token)  {
+            pflow_running = 0;
+                pthread_mutex_unlock(&my_mutex);
+                break;
+            }// quit when the max_token is reached
+
+  /*           if(buffer -> size() !=0 ){ */
+               //  pflow_running = 0;
+               // pthread_mutex_unlock(&my_mutex);
+               // continue;
+            /* } */
+            
             int added_token = getRand(1, 5);
             pflow_generate += added_token;
             seq_num += added_token;
             for(int i = 0; i < added_token; i++) {
-                if(dropped_token + fetched_token >= max_token)break;
+                if(dropped_token + fetched_token >= max_token){
+                    pflow_running = 0;
+                    break;
+                }
                 if(!buffer->push(seq_num)) {
                     dropped_token++;
                 }
             }
             printf("%3d(pflow)   %3d                    %3d\n", added_token, seq_num - 1, buffer->size());
+            pflow_running = 0;
         pthread_mutex_unlock(&my_mutex);
     }
     pthread_exit(NULL);
@@ -120,12 +137,9 @@ void *Server(void *threadarg) {
                    , buffer->size(), cnt, fetched_token);
 
             // when the queue is emptied by the server, the server will call p_flow 
-            if(buffer -> size() == 0 && seq_num > 0 && ){
+            if(buffer -> size() == 0 && seq_num > 0 && !pflow_running){
                 sem_post(&empty);
-                pthread_mutex_unlock(&my_mutex);    // unlock the mutex to make sure the flow or pflow can execute as normal
-
-                sem_wait(&server_permission);       // block the server until the pflow is finished
-                continue;                           // make sure that the mutex will not be unlocked twice
+                pflow_running = 1;
             }
 
         pthread_mutex_unlock(&my_mutex);
