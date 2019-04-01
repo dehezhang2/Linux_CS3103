@@ -46,10 +46,10 @@ void *Pflow(void *threadarg){
 
     while(fetched_token + dropped_token < max_token){
         sem_wait(&empty);
-        if(fetched_token + dropped_token >= max_token){
+        /*if(fetched_token + dropped_token >= max_token){
             pflow_running = 0;
             break;   // quit when the max_token is reached
-        }
+        }*/
         pthread_mutex_lock(&my_mutex);
             /*critical section*/
             if(fetched_token + dropped_token >= max_token)  {
