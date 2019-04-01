@@ -157,6 +157,9 @@ int main(int argc, char* argv[]) {
         fetched_token = dropped_token = flow_generate = pflow_generate = seq_num = 0;
         int max_token = atoi(argv[1]);
         double flow_interval = atof(argv[2]);
+        if(!max_token||flow_interval == 0){
+            printf("Input error!\n");
+        }
         sem_init(&empty,0,0);
         pflow_running = false;
 
