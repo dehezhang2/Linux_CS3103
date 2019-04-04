@@ -46,10 +46,10 @@ void *Pflow(void *threadarg){
 
     while(fetched_token + dropped_token < max_token){
         sem_wait(&empty);
-        /*if(fetched_token + dropped_token >= max_token){
+        if(fetched_token + dropped_token >= max_token){
             pflow_running = 0;
-            break;   // quit when the max_token is reached
-        }*/
+            break;   //quit when the max_token is reached
+        }
         pthread_mutex_lock(&my_mutex);
             /*critical section*/
             if(fetched_token + dropped_token >= max_token)  {
@@ -58,11 +58,11 @@ void *Pflow(void *threadarg){
                 break;
             }// quit when the max_token is reached
 
-  /*           if(buffer -> size() !=0 ){ */
-               //  pflow_running = 0;
-               // pthread_mutex_unlock(&my_mutex);
-               // continue;
-            /* } */
+            if(buffer -> size() !=0 ){
+                pflow_running = 0;
+               pthread_mutex_unlock(&my_mutex);
+               continue;
+            }
             
             int added_token = getRand(1, 5);
             pflow_generate += added_token;
@@ -138,6 +138,7 @@ void *Server(void *threadarg) {
 
             // when the queue is emptied by the server, the server will call p_flow 
             if(buffer -> size() == 0 && seq_num > 0 && !pflow_running){
+                printf("%d\n", seq_num);
                 sem_post(&empty);
                 pflow_running = 1;
             }
