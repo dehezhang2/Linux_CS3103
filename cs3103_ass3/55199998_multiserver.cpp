@@ -33,6 +33,7 @@ int seq_num;
 // The value of the empty is initialized as zero to block the pflow thread
 // Server_permission is used to make sure server can only call pflow for one time
 sem_t empty , server_permission;
+bool refilling;
 
 // get random number
 int getRand(int a, int b) {
@@ -119,6 +120,17 @@ void *Pflow(void *threadarg){
         
         try_pthread_mutex_lock(&my_mutex);
             /*critical section*/
+            
+            #ifdef AVOID
+                // This piece of codes can prevent the situation that pflow generate the token after flow did it
+                if(buffer -> size() !=0 ){
+                   refilling = 0;
+                   try_sem_post(&server_permission); 
+                   try_pthread_mutex_unlock(&my_mutex);
+                   continue;
+                }
+            #endif
+
             int added_token = getRand(1, 5);
             pflow_generate += added_token;
             seq_num += added_token;
@@ -129,9 +141,11 @@ void *Pflow(void *threadarg){
                 }
             }
             printf("%3d(pflow)   %3d                    %3d\n", added_token, seq_num - 1, buffer->size());
+            refilling = false;
+            try_sem_post(&server_permission);       // pflow has already respond to the request, and allows the server to continue;
         try_pthread_mutex_unlock(&my_mutex);
 
-        try_sem_post(&server_permission);       // pflow has already respond to the request, and allows the server to continue;
+
     }
     // avoid deadlock
     try_sem_post(&server_permission);
@@ -163,7 +177,7 @@ void *Flow(void *threadarg) {
                 }
             }
             printf("%3d(flow)    %3d                    %3d\n", added_token, seq_num - 1, buffer->size());
-        try_pthread_mutex_unlock(&my_mutex);
+            try_pthread_mutex_unlock(&my_mutex);
     }
     pthread_exit(NULL);
 }
@@ -177,7 +191,7 @@ void *Server(void *threadarg) {
 
     while(fetched_token + dropped_token < max_token) {
         usleep(2000000);
-
+        try_sem_wait(&server_permission);
         try_pthread_mutex_lock(&my_mutex);
             /*critical section*/
             int deleted_token = getRand(1, 20);
@@ -193,12 +207,12 @@ void *Server(void *threadarg) {
 
             // when the queue is emptied by the server, the server will call p_flow 
             if(buffer -> size() == 0 && seq_num > 0){
+                refilling = true;
                 try_sem_post(&empty);
-                try_pthread_mutex_unlock(&my_mutex);    // unlock the mutex to make sure the flow or pflow can execute as normal
-                try_sem_wait(&server_permission);       // block the server until the pflow is finished
-                continue;                           // make sure that the mutex will not be unlocked twice
             }
-
+            if(!refilling){
+                try_sem_post(&server_permission);
+            }
         try_pthread_mutex_unlock(&my_mutex);
 
     }
@@ -219,9 +233,11 @@ int main(int argc, char* argv[]) {
         // check the input value
         if(!max_token||flow_interval == 0){
             printf("Input error!\n");
+            exit(-1);
         }
         try_sem_init(&empty,0,0);
-        try_sem_init(&server_permission,0,0);
+        try_sem_init(&server_permission,0,1);
+        refilling = false;
 
         Thread_arg arg(new Queue<Token>(), max_token, flow_interval);
         printf("Flow         Queue                                  Server\n");

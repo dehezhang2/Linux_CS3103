@@ -43,7 +43,7 @@ int getRand(int a, int b) {
 void try_sem_init(sem_t* sem, int pshared, unsigned int value){
     int rc = sem_init(sem, pshared, value);
     if(rc){
-        printf("Error when initialize the semaphore!\n");
+        printf("Error when initializing the semaphore!\n");
         exit(-1);
     }
 }
@@ -126,13 +126,15 @@ void *Pflow(void *threadarg){
                 try_pthread_mutex_unlock(&my_mutex);
                 break;
             }
-
-            // This piece of codes can prevent the situation that pflow generate the token after flow did it
-            if(buffer -> size() !=0 ){
-               pflow_running = 0;
-               try_pthread_mutex_unlock(&my_mutex);
-               continue;
-            }
+            
+            #ifdef AVOID
+                // This piece of codes can prevent the situation that pflow generate the token after flow did it
+                if(buffer -> size() !=0 ){
+                   pflow_running = 0;
+                   try_pthread_mutex_unlock(&my_mutex);
+                   continue;
+                }
+            #endif
             
             int added_token = getRand(1, 5);
             pflow_generate += added_token;
@@ -238,6 +240,7 @@ int main(int argc, char* argv[]) {
         // check the input value
         if(!max_token||flow_interval == 0){
             printf("Input error!\n");
+            exit(-1);
         }
         try_sem_init(&empty,0,0);
         pflow_running = false;

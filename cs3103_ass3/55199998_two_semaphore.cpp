@@ -119,6 +119,16 @@ void *Pflow(void *threadarg){
         
         try_pthread_mutex_lock(&my_mutex);
             /*critical section*/
+            
+            #ifdef AVOID
+                // This piece of codes can prevent the situation that pflow generate the token after flow did it
+                if(buffer -> size() !=0 ){
+                    try_sem_post(&server_permission); 
+                    try_pthread_mutex_unlock(&my_mutex);
+                   continue;
+                }
+            #endif
+
             int added_token = getRand(1, 5);
             pflow_generate += added_token;
             seq_num += added_token;
@@ -219,6 +229,7 @@ int main(int argc, char* argv[]) {
         // check the input value
         if(!max_token||flow_interval == 0){
             printf("Input error!\n");
+            exit(-1);
         }
         try_sem_init(&empty,0,0);
         try_sem_init(&server_permission,0,0);
