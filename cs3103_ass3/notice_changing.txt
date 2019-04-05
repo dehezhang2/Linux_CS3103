@@ -1,0 +1,3 @@
+1. Remember to change the mutex lock issue
+2. Remember to destroy the semaphore
+3. Remember to ecapsulate the code

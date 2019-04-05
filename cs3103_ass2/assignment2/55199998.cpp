@@ -95,7 +95,10 @@ int main(int argc, char* argv[]) {
         fetched_token = dropped_token = generated_token = 0;
         int max_token = atoi(argv[1]);
         double flow_interval = atof(argv[2]);
-        
+        if(!max_token||!flow_interval){
+            printf("Input error!\n");
+        }
+
         Thread_arg arg(new Queue<Token>(), max_token, flow_interval);
         printf("Flow         Queue                                  Server\n");
         printf("Token added  Latest sequence number Current Length  Token served Total Token fetched\n");
