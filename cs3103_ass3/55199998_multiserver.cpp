@@ -133,8 +133,7 @@ void *Pflow(void *threadarg){
 
             int added_token = getRand(1, 5);
             pflow_generate += added_token;
-            seq_num += added_token;
-            for(int i = 0; i < added_token; i++) {
+            for(int i = 0; i < added_token; i++, seq_num++) {
                 if(dropped_token + fetched_token >= max_token)break;
                 if(!buffer->push(seq_num)) {
                     dropped_token++;
@@ -168,9 +167,8 @@ void *Flow(void *threadarg) {
             /*critical section*/
             int added_token = getRand(1, 10);
             flow_generate += added_token;
-            seq_num += added_token;
             // use a for loop to simulate
-            for(int i = 0; i < added_token; i++) {
+            for(int i = 0; i < added_token; i++, seq_num++) {
                 if(dropped_token + fetched_token >= max_token)break;
                 if(!buffer->push(seq_num)) {
                     dropped_token++;
